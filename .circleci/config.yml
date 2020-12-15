@@ -77,7 +77,7 @@ jobs:
           name: Scan front-end
           command: |
             cd frontend
-            npm audit fix --audit-level=critical
+            npm audit --audit-level=critical
             npm install
             npm audit --audit-level=critical
 
@@ -92,7 +92,7 @@ jobs:
           name: Scan backend
           command: |
             cd frontend
-            npm audit fix --audit-level=critical
+            npm audit --audit-level=critical
             npm install
             npm audit --audit-level=critical
 
