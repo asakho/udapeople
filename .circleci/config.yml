@@ -5,7 +5,7 @@ orbs:
     aws-cli: circleci/aws-cli@1.3.2
 
 commands:
-  destroy-environment:
+  rollback-env:
     description: Destroy backend and frontend cloudformation stacks depend on workflow ID.
     steps:
       - run:
@@ -182,8 +182,29 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      - destroy-environment        
+      - rollback-env     
 
+  configure-infrastructure:
+    docker:
+      - image: williamyeh/ansible:ubuntu18.04
+    steps:
+      - checkout:
+      - add_ssh_keys:
+            fingerprints:
+              - "70:24:2e:18:b8:46:a8:51:27:51:3d:d7:70:9a:b2:95"
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apt -y update
+            apt -y install git curl
+      - run:
+          name: Configure server
+          command: |
+            cd ~/project/.circleci/ansible
+            ansible-playbook configure-server.yml --inventory-file=inventory.txt          
+      - rollback-env
 
 
 workflows:
@@ -204,3 +225,5 @@ workflows:
           filters:
               branches:
                   only: [master]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]

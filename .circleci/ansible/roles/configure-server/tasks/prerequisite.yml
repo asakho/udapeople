@@ -1,0 +1,34 @@
+---
+- name: "update server"
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: "Ensure Python 3 is present"
+  become: true
+  apt:
+    name: python3
+    state: latest
+    update_cache: yes
+
+- name: "ensure nodejs is present"
+  apt:
+    name: nodejs
+    state: latest
+    update_cache: yes
+
+- name: "ensure npm is present"
+  apt:
+    name: npm
+    state: latest
+    update_cache: yes
+
+- name: "install pm2 with npm"
+  become: true
+  npm:
+      name: pm2
+      global: yes
+      production: yes
+      state: present
