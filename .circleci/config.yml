@@ -203,7 +203,7 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible
-            ansible-playbook configure-server.yml --inventory-file=inventory.txt          
+            ansible-playbook -i inventory.txt configure-server.yml
       - rollback-env
 
 
