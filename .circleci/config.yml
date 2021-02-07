@@ -188,7 +188,7 @@ jobs:
     docker:
       - image: williamyeh/ansible:ubuntu18.04
     steps:
-      - checkout:
+      - checkout
       - add_ssh_keys:
             fingerprints:
               - "70:24:2e:18:b8:46:a8:51:27:51:3d:d7:70:9a:b2:95"
