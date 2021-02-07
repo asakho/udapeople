@@ -175,8 +175,7 @@ jobs:
             aws ec2 describe-instances \
                 --query 'Reservations[*].Instances[*].PublicIpAddress' \
                 --filters "Name=tag:project,Values=udapeople" \
-                --output text >> .circleci/ansible/inventory.txt
-            ssh-keyscan -H .circleci/ansible/inventory.txt >> ~/.ssh/known_hosts    
+                --output text >> .circleci/ansible/inventory.txt    
             cat .circleci/ansible/inventory.txt    
 
       - persist_to_workspace:
@@ -204,6 +203,7 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible
+            ssh-keyscan -H ./inventory.txt >> ~/.ssh/known_hosts
             ansible-playbook -i inventory.txt configure-server.yml
       - rollback-env
 
