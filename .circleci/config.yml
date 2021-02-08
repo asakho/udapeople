@@ -236,7 +236,7 @@ jobs:
 
   run-migrations:
     docker:
-      image: circleci/node:13.8.0
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -263,7 +263,7 @@ jobs:
 
   deploy-frontend:
     docker:
-      image: amazon/aws-cli 
+      - image: amazon/aws-cli 
     steps:
       - checkout
       - run:
