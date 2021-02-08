@@ -147,8 +147,8 @@ jobs:
       - checkout 
       - aws-cli/setup
       - add_ssh_keys:
-          fingerprints:
-            - "70:24:2e:18:b8:46:a8:51:27:51:3d:d7:70:9a:b2:95"
+            fingerprints:
+                - "27:65:a8:ee:cb:79:14:b1:83:d4:1f:6a:90:7d:44:7a"
 
       - run:
           name: Ensure back-end infrastructure exists
@@ -191,7 +191,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "70:24:2e:18:b8:46:a8:51:27:51:3d:d7:70:9a:b2:95"
+            - "27:65:a8:ee:cb:79:14:b1:83:d4:1f:6a:90:7d:44:7a"
       - attach_workspace:
           at: ~/
       - run:
