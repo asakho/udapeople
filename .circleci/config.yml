@@ -236,18 +236,27 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
       - restore_cache:
             keys:
-                 - "backend-build"         
+                 - "backend-build" 
+
+      - run:
+          name: Install dependencies
+          command: |
+            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+            yum -y install nodejs npm tar gzip jq git                 
+
       - run:
           name: Run migrations
           command: |
             cd backend
+            npm install
             npm run migrations > /tmp/migration.log
             export migration_status=$(cat /tmp/migration.log | grep -c "has been executed successfully")
+            
       - run:
           name: Send migration results to memstash
           command: |
