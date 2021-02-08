@@ -199,14 +199,18 @@ jobs:
           command: |
             apt -y update
             apt -y install git curl
+
+      - run:
+          name: add host to ssh_config
+          command: |
+            echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
       - run:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible
-            ssh-keyscan -H ./inventory.txt >> ~/.ssh/known_hosts
             ansible-playbook -i inventory.txt configure-server.yml
       - rollback-env
-
 
 workflows:
   default:
