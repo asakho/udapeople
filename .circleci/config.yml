@@ -299,7 +299,7 @@ jobs:
     docker:
        - image: williamyeh/ansible:ubuntu18.04
     steps:
-      checkout
+      - checkout
       - add_ssh_keys:
             fingerprints:
                 - "ca:54:ff:52:8b:cd:46:f0:ee:f7:83:f7:30:62:7e:3a"
@@ -323,7 +323,7 @@ jobs:
     docker:
        - image: amazon/aws-cli
     steps:
-      checkout
+      - checkout
       - run:
           name: Install dependencies
           command: |
