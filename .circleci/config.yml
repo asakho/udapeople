@@ -144,6 +144,12 @@ jobs:
       - image: amazon/aws-cli 
     steps:
       - checkout 
+
+      - run:
+          name: Install prerequsites
+          command: |
+            yum -y install tar gzip jq git 
+
       - add_ssh_keys:
             fingerprints:
                 - "ca:54:ff:52:8b:cd:46:f0:ee:f7:83:f7:30:62:7e:3a"
