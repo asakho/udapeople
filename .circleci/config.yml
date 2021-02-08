@@ -238,6 +238,7 @@ jobs:
           command: |
             apt -y update
             apt -y install git curl
+      - write-env-variables
 
       - run:
           name: add host to ssh_config
@@ -337,6 +338,7 @@ jobs:
           command: |
             apt -y update
             apt -y install git curl
+      - write-env-variables      
       - run:
           name: Deploy backend
           command: |
