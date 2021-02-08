@@ -23,6 +23,23 @@ commands:
             aws cloudformation delete-stack --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7}
             exit 0  
 
+write-env-variables:
+  description: Writes environment variables to env file
+  steps:
+    - run:
+        name: Write to .env file
+        command: |
+          echo ENVIROMENT=development > "backend/.env"
+          echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+          echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
+          echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
+          echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
+          echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+          echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+          echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+          echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+          echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
         # parameters:
@@ -256,7 +273,7 @@ jobs:
             npm install
             npm run migrations > /tmp/migration.log
             export migration_status=$(cat /tmp/migration.log | grep -c "has been executed successfully")
-            
+
       - run:
           name: Send migration results to memstash
           command: |
