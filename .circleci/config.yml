@@ -5,7 +5,7 @@ orbs:
     aws-cli: circleci/aws-cli@1.3.2
 
 commands:
-  rollback-env:
+  destroy-environment:
     description: Destroy backend and frontend cloudformation stacks depend on workflow ID.
     steps:
       - run:
@@ -23,6 +23,24 @@ commands:
             aws cloudformation delete-stack --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7}
             exit 0  
 
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+        # parameters:
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+           # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            export SUCCESS=$(curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
+            if [[ $SUCCESS == 1 ]]; 
+            then
+               cd ~/project/backend
+               npm install
+               npm run migrations:revert
+            fi
+
+            
 jobs:
   build-frontend:
     docker:
@@ -186,7 +204,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      - rollback-env     
+      - destroy-environment     
 
   configure-infrastructure:
     docker:
@@ -213,8 +231,132 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible
-            ansible-playbook -i inventory.txt configure-server.yml -v
-      - rollback-env
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment
+
+  run-migrations:
+    docker:
+      image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+            keys:
+                 - "backend-build"         
+      - run:
+          name: Run migrations
+          command: |
+            cd backend
+            npm run migrations > /tmp/migration.log
+            export migration_status=$(cat /tmp/migration.log | grep -c "has been executed successfully")
+      - run:
+          name: Send migration results to memstash
+          command: |
+            if [ $migration_status > 0 ]
+            then
+              curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+            else
+              echo "there was no migration"
+            fi  
+                 
+      - revert-migrations
+      - destroy-environment
+
+  deploy-frontend:
+    docker:
+      image: amazon/aws-cli 
+    steps:
+      checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum -y install tar gzip jq git curl
+      - run:
+          name: Get backend url
+          command: |
+            BACKEND_IP=`curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}" >> "frontend/.env"
+            echo ENVIRONMENT=production > "frontend/.env"
+            echo NODE_ENV=production >> "frontend/.env"
+
+      
+      - run:
+           name: Build frontend
+           command: |
+             cd frontend
+             npm install
+             npm run build
+            
+      - run:
+          name: Deploy frontend objects
+          command: |
+            aws s3 cp --recursive frontend/dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}"
+
+      - revert-migrations
+      - destroy-environment    
+                    
+  deploy-backend:
+    docker:
+       - image: williamyeh/ansible:ubuntu18.04
+    steps:
+      checkout
+      - add_ssh_keys:
+            fingerprints:
+                - "ca:54:ff:52:8b:cd:46:f0:ee:f7:83:f7:30:62:7e:3a"
+      - attach_workspace:
+          at: ~/
+
+      - run:
+          name: Install dependencies
+          command: |
+            apt -y update
+            apt -y install git curl
+      - run:
+          name: Deploy backend
+          command: |
+            cd ~/project/.circleci/ansible
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - revert-migrations
+      - destroy-environment   
+
+  smoke-test:
+    docker:
+       - image: amazon/aws-cli
+    steps:
+      checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum -y install jq tar gzip git curl
+      - run:
+          name: Get backend url
+          command: |
+            BACKEND_IP=`curl -H "token: ${CIRCLE_WORKFLOW_ID}" --request GET https://api.memstash.io/values/BACKEND_IP_${CIRCLE_WORKFLOW_ID:0:7}`          
+
+      - run:
+          name: Backend smoke test.
+          command: |
+            echo $BACKEND_IP
+            if curl -s http://${BACKEND_IP}:3030/api/status | grep "\"status\":\"ok\"" 
+            then
+              exit 0
+            else
+              exit 1
+            fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com/index.html"
+            echo $URL
+            if curl -s ${URL} | grep "Welcome"
+            then
+              exit 0
+            else
+               exit 1
+            fi
+      - revert-migrations
+      - destroy-environment 
+      
 
 workflows:
   default:
@@ -236,3 +378,11 @@ workflows:
                   only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]                            

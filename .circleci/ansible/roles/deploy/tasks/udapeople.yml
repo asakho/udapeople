@@ -1,0 +1,26 @@
+---
+
+- name: "ensure udapeople app directory exist"
+  file:
+    path: /app/udapeople
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: 0775
+    recurse: yes
+
+- name: "deploy backend app"
+  become_user: ubuntu
+  unarchive:
+    src: ../../backend/app.tar.gz
+    dest: /app/udapeople
+    owner: ubuntu
+    group: ubuntu
+    mode: 0755
+
+- name: "run backend app"
+  become_user: ubuntu
+  shell: |
+    cd /app/udapeople
+    npm install    
+    pm2 start main.js --update-env  

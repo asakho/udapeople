@@ -1,0 +1,4 @@
+---
+
+- include_tasks: udapeople.yml
+  static: no
