@@ -141,13 +141,12 @@ jobs:
           
   deploy-infrastructure:
     docker:
-      - image: cimg/base:2021.02 
+      - image: amazon/aws-cli 
     steps:
       - checkout 
-      - aws-cli/setup
       - add_ssh_keys:
             fingerprints:
-                - "27:65:a8:ee:cb:79:14:b1:83:d4:1f:6a:90:7d:44:7a"
+                - "ca:54:ff:52:8b:cd:46:f0:ee:f7:83:f7:30:62:7e:3a"
 
       - run:
           name: Ensure back-end infrastructure exists
@@ -190,7 +189,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "27:65:a8:ee:cb:79:14:b1:83:d4:1f:6a:90:7d:44:7a"
+            - "ca:54:ff:52:8b:cd:46:f0:ee:f7:83:f7:30:62:7e:3a"
       - attach_workspace:
           at: ~/
       - run:
