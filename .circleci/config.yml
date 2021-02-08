@@ -143,7 +143,6 @@ jobs:
     docker:
       - image: cimg/base:2021.02 
     steps:
-      # Checkout code from git
       - checkout 
       - aws-cli/setup
       - add_ssh_keys:
