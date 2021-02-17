@@ -29,14 +29,17 @@ commands:
       - run:
           name: Write to .env file
           command: |
-            echo ENVIROMENT=development > "backend/.env"
+            echo ENVIROMENT=production > "backend/.env"
+            echo NODE_ENV=production >> "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
             echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
             echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
 
@@ -264,14 +267,13 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-            yum -y install nodejs npm tar gzip jq git                 
+            curl -sL https://rpm.nodesource.com/setup_14.x | bash -
+            yum -y install nodejs                 
 
       - run:
           name: Run migrations
           command: |
             cd backend
-            npm install
             npm run migrations > /tmp/migration.log
             export migration_status=$(cat /tmp/migration.log | grep -c "has been executed successfully")
 
