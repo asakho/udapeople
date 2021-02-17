@@ -179,15 +179,14 @@ jobs:
           
   deploy-infrastructure:
     docker:
-      - image: circleci/node:13.8.0 
+      - image: amazon/aws-cli 
     steps:
       - checkout 
 
       - run:
           name: Install prerequsites
           command: |
-            sudo apt-get update
-            sudo apt-get install awscli
+            yum -y install tar gzip jq git
 
       - add_ssh_keys:
             fingerprints:
@@ -258,7 +257,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: amazon/aws-cli
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -268,8 +267,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            curl -sL https://rpm.nodesource.com/setup_14.x | bash -
-            yum -y install nodejs                 
+            sudo apt-get update
+            sudo apt-get install awscli node-typescript                  
 
       - run:
           name: Run migrations
