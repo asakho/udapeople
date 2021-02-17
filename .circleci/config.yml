@@ -179,14 +179,15 @@ jobs:
           
   deploy-infrastructure:
     docker:
-      - image: amazon/aws-cli 
+      - image: circleci/node:13.8.0 
     steps:
       - checkout 
 
       - run:
           name: Install prerequsites
           command: |
-            yum -y install tar gzip jq git 
+            sudo apt-get update
+            sudo apt-get install awscli
 
       - add_ssh_keys:
             fingerprints:
